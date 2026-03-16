@@ -3,140 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PROFE MASTER FINAL</title>
+    <title>Profe Master - MPJ GOLD V3.1 (CLOUD)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        :root { --verde: #2d5a27; --oro: #d4af37; --fondo: #121212; }
-        body { background: var(--fondo); color: white; font-family: sans-serif; padding: 20px; }
-        .card { background: #1e1e1e; padding: 15px; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px; }
-        #reloj { font-size: 3rem; text-align: center; color: var(--oro); font-family: monospace; margin: 10px 0; }
-        input { width: 100%; padding: 12px; margin: 5px 0; background: #2a2a2a; border: 1px solid var(--verde); border-radius: 8px; color: white; box-sizing: border-box; }
-        .btn { background: var(--verde); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        
-        /* TABLA DE ALUMNOS */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; color: var(--oro); border-bottom: 2px solid #333; padding: 10px; }
-        td { padding: 12px; border-bottom: 1px solid #222; }
-        .btn-del { background: #aa0000; color: white; border: none; padding: 5px 10px; border-radius: 4px; }
-
-        #inicio { position: fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:10000; display:flex; align-items:center; justify-content:center; }
+        body { background-color: #000; color: #fff; font-family: sans-serif; padding: 20px; display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
+        header { border-bottom: 2px solid #008000; padding-bottom: 10px; margin-bottom: 15px; text-align: center; }
+        h1 { margin: 0; color: #008000; font-size: 2.2em; text-transform: uppercase; }
+        #reloj { font-size: 1.2em; color: #fbbf24; margin-bottom: 5px; font-weight: bold; }
+        .estado { font-size: 0.9em; font-weight: bold; color: #00ff00; margin-bottom: 10px; }
+        .btn-test { background: #443300; color: #fbbf24; border: 1px solid #fbbf24; padding: 5px 10px; font-size: 0.7em; cursor: pointer; border-radius: 5px; margin-top: 5px; }
+        .vista { display: none; flex-grow: 1; width: 100%; }
+        .activa { display: block; }
+        label { display: block; margin: 15px 0 8px; font-weight: bold; font-size: 1.2em; color: #008000; }
+        input { width: 100%; padding: 18px; background: #1a1a1a; border: 2px solid #333; color: #fff; border-radius: 12px; font-size: 1.2em; box-sizing: border-box; }
+        .dia { display: flex; align-items: center; margin: 15px 0; font-size: 1.3em; }
+        input[type="checkbox"] { width: 35px; height: 35px; margin-right: 15px; }
+        .btn { width: 100%; padding: 20px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1.2em; margin-top: 15px; }
+        .btn-verde { background: #008000; color: white; }
+        .btn-nav { background: #333; color: white; margin-bottom: 25px; }
+        .btn-rojo { background: #800000; color: white; display: none; margin-top: 20px; }
+        .tarjeta { padding: 20px; border-left: 12px solid #008000; margin-bottom: 18px; background: #151515; border-radius: 12px; position: relative; }
+        .alerta-45 { border-left-color: #fbbf24; background: #221a00; } 
+        .tarjeta-activa { border-left-color: #00ff00; background: #001a00; }
+        .clase-espera { border-left-color: #ff0000; background: #2a0000; animation: parpadeo 1.5s infinite; }
+        @keyframes parpadeo { 50% { opacity: 0.6; } }
+        .btn-edit-card { background: #1e3a8a; color: white; padding: 10px 15px; border-radius: 8px; border: none; float: right; font-weight: bold; }
+        footer { margin-top: auto; padding: 25px 0; border-top: 1px solid #333; text-align: center; color: #666; font-size: 0.8em; }
     </style>
 </head>
 <body>
+    <header>
+        <h1>Profe Master</h1>
+        <div id="reloj">Cargando...</div>
+        <div id="status" class="estado">● SISTEMA CLOUD ONLINE</div>
+        <button class="btn-test" onclick="playAlarmaMaster()">PROBAR SONIDO YM-2413</button>
+    </header>
 
-<div id="inicio">
-    <button class="btn" style="width:80%; height:80px; font-size:1.5rem;" onclick="activar()">ACTIVAR SISTEMA</button>
-</div>
+    <button class="btn btn-nav" onclick="cambiarVista()" id="btnVista">VER LISTA DE ALUMNOS</button>
 
-<div class="card">
-    <div id="reloj">00:00:00</div>
-    <button class="btn" style="background:#444;" onclick="probarAlarma()">PROBAR SONIDO AHORA</button>
-</div>
+    <div id="vistaRegistro" class="vista activa">
+        <input type="hidden" id="editIndex" value="-1">
+        <label>Nombre del Alumno:</label>
+        <input type="text" id="nombreAlumno">
+        <label>Hora de Inicio:</label>
+        <input type="time" id="horaClase">
+        <label>Días:</label>
+        <div id="diasGrupo">
+            <label class="dia"><input type="checkbox" value="Lunes"> Lunes</label>
+            <label class="dia"><input type="checkbox" value="Martes"> Martes</label>
+            <label class="dia"><input type="checkbox" value="Miércoles"> Miércoles</label>
+            <label class="dia"><input type="checkbox" value="Jueves"> Jueves</label>
+            <label class="dia"><input type="checkbox" value="Viernes"> Viernes</label>
+            <label class="dia"><input type="checkbox" value="Sábado"> Sábado</label>
+        </div>
+        <button id="btnGuardar" class="btn btn-verde" onclick="guardar()">GUARDAR Y SINCRONIZAR</button>
+        <button id="btnBorrar" class="btn btn-rojo" onclick="eliminarAlumno()">ELIMINAR ALUMNO DEFINITIVAMENTE</button>
+    </div>
 
-<div class="card">
-    <h3>Nuevo Alumno</h3>
-    <input type="text" id="nom" placeholder="Nombre del Alumno">
-    <input type="time" id="hor">
-    <button class="btn" onclick="agregar()">AÑADIR A LA LISTA</button>
-</div>
+    <div id="vistaEventos" class="vista">
+        <div id="listaEventos"></div>
+    </div>
 
-<div class="card">
-    <h3>Lista de Clases</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Alumno</th>
-                <th>Hora</th>
-                <th>Acción</th>
-            </tr>
-        </thead>
-        <tbody id="cuerpoTabla"></tbody>
-    </table>
-</div>
+    <footer>MusicArte | MPJ Factory 2026</footer>
 
-<div class="card" style="border-style: dashed;">
-    <h3>Sincronizar (PC ↔ iPhone)</h3>
-    <textarea id="syncBox" style="width:100%; background:#000; color:#0f0;" rows="3" placeholder="Pega el código aquí..."></textarea>
-    <button class="btn" style="background:#333;" onclick="exportar()">1. COPIAR DATOS</button>
-    <button class="btn" style="background:#333;" onclick="importar()">2. PEGAR Y ACTUALIZAR</button>
-</div>
+    <script>
+        // CONFIGURACIÓN CLOUD TINY-SYNC
+        const API_URL = "https://api.jsonbin.io/v3/b/65f0a69a2662c34d318721c1"; // Bin de prueba compartido
+        const API_KEY = "$2a$10$7Z/YF8C3Z2A1F/6.H.S6aeXJ.fWvH4hX9k/2s7S.vN8kRj3Y6Zz/i"; 
 
-<script>
-    let sintetizador;
-    let alumnos = JSON.parse(localStorage.getItem('pm_data_final') || "[]");
+        const fmCfg = { harmonicity: 3.01, modulationIndex: 14, oscillator: { type: "sine" }, envelope: { attack: 0.001, decay: 2.5, sustain: 0.05, release: 4.0 } };
+        const engineA = new Tone.PolySynth(Tone.FMSynth, fmCfg).toDestination();
+        const engineB = new Tone.PolySynth(Tone.FMSynth, fmCfg).toDestination();
+        engineB.set({ detune: -12 });
+        const beep = new Tone.Oscillator(1000, "sine").toDestination();
 
-    async function activar() {
-        await Tone.start();
-        sintetizador = new Tone.PolySynth(Tone.Synth).toDestination();
-        document.getElementById('inicio').style.display = 'none';
-        actualizarVista();
-    }
+        let alumnos = [];
+        let avisosDados = new Set();
 
-    function agregar() {
-        const n = document.getElementById('nom').value;
-        const h = document.getElementById('hor').value;
-        if(n && h) {
-            alumnos.push({n, h});
-            guardarYRefrescar();
-            document.getElementById('nom').value = "";
+        async function cargarDesdeNube() {
+            try {
+                const res = await fetch(API_URL, { headers: { "X-Master-Key": API_KEY } });
+                const data = await res.json();
+                alumnos = data.record.alumnos || [];
+                document.getElementById('status').innerText = "● CLOUD SINCRONIZADO";
+                render();
+            } catch (e) { document.getElementById('status').innerText = "○ MODO LOCAL"; }
         }
-    }
 
-    function guardarYRefrescar() {
-        localStorage.setItem('pm_data_final', JSON.stringify(alumnos));
-        actualizarVista();
-    }
-
-    function actualizarVista() {
-        const tabla = document.getElementById('cuerpoTabla');
-        tabla.innerHTML = alumnos.sort((a,b)=>a.h.localeCompare(b.h)).map((a, i) => `
-            <tr>
-                <td><b>${a.n}</b></td>
-                <td>${a.h}</td>
-                <td><button class="btn-del" onclick="eliminar(${i})">Eliminar</button></td>
-            </tr>
-        `).join('');
-    }
-
-    function eliminar(i) {
-        alumnos.splice(i, 1);
-        guardarYRefrescar();
-    }
-
-    function probarAlarma() {
-        if(!sintetizador) return;
-        const ahora = Tone.now();
-        sintetizador.triggerAttackRelease("C4", "8n", ahora);
-        sintetizador.triggerAttackRelease("E4", "8n", ahora + 0.1);
-        sintetizador.triggerAttackRelease("G4", "4n", ahora + 0.2);
-    }
-
-    setInterval(() => {
-        const d = new Date();
-        const t = d.toLocaleTimeString('es-ES', {hour12:false});
-        document.getElementById('reloj').innerText = t;
-        if(d.getSeconds() === 0) {
-            const hActual = t.substring(0,5);
-            if(alumnos.some(a => a.h === hActual)) probarAlarma();
+        async function guardarEnNube() {
+            document.getElementById('status').innerText = "● GUARDANDO...";
+            await fetch(API_URL, {
+                method: 'PUT',
+                headers: { "Content-Type": "application/json", "X-Master-Key": API_KEY },
+                body: JSON.stringify({ alumnos: alumnos })
+            });
+            document.getElementById('status').innerText = "● CLOUD SINCRONIZADO";
         }
-    }, 1000);
 
-    function exportar() {
-        const cod = btoa(JSON.stringify(alumnos));
-        document.getElementById('syncBox').value = cod;
-        document.getElementById('syncBox').select();
-        document.execCommand('copy');
-        alert("¡Copiado! Pégalo en el otro dispositivo.");
-    }
+        async function playAlarmaMaster() {
+            await Tone.start();
+            const now = Tone.now();
+            ["E4", "C#4", "E4", "A4"].forEach((n, i) => {
+                [0, 2.5].forEach(off => {
+                    engineA.triggerAttackRelease(n, "4n", now + off + (i * 0.5));
+                    engineB.triggerAttackRelease(n, "4n", now + off + (i * 0.5));
+                });
+            });
+        }
 
-    function importar() {
-        try {
-            const cod = document.getElementById('syncBox').value;
-            alumnos = JSON.parse(atob(cod));
-            guardarYRefrescar();
-            alert("¡Sincronizado!");
-        } catch(e) { alert("Código inválido"); }
-    }
-</script>
+        function actualizarReloj() {
+            const ahora = new Date();
+            const hStr = ahora.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
+            document.getElementById('reloj').innerText = ahora.toLocaleDateString('es-ES', {weekday:'long', day:'numeric'}) + ", " + hStr;
+            const hoy = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"][ahora.getDay()];
+            alumnos.forEach(a => {
+                if (!a.dias.includes(hoy)) return;
+                if (a.hora === hStr && !avisosDados.has(a.nombre + hStr)) {
+                    playAlarmaMaster();
+                    avisosDados.add(a.nombre + hStr);
+                }
+            });
+            render();
+        }
+
+        function render() {
+            const ahora = new Date();
+            const hoy = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"][ahora.getDay()];
+            const cont = document.getElementById('listaEventos');
+            cont.innerHTML = alumnos.map((a, i) => {
+                if (!a.dias.includes(hoy)) return "";
+                const [h, m] = a.hora.split(':').map(Number);
+                const dc = new Date(); dc.setHours(h, m, 0);
+                const diff = (dc - ahora) / 60000;
+                if (diff < -30) return "";
+                let estilo = "";
+                let msg = "En espera";
+                if (diff <= 45 && diff > 0) { estilo = "alerta-45"; msg = "⚠️ TARJETAS (45m)"; }
+                if (diff <= 0 && diff >= -15) { estilo = "tarjeta-activa"; msg = "● EN CLASE"; }
+                return `<div class="tarjeta ${estilo}">
+                    <button class="btn-edit-card" onclick="editar(${i})">EDITAR</button>
+                    <strong>${a.nombre}</strong><br>${a.hora} | ${msg}
+                </div>`;
+            }).join('') || "No hay más clases hoy.";
+        }
+
+        function guardar() {
+            const n = document.getElementById('nombreAlumno').value;
+            const h = document.getElementById('horaClase').value;
+            const d = Array.from(document.querySelectorAll('#diasGrupo input:checked')).map(c => c.value);
+            const idx = parseInt(document.getElementById('editIndex').value);
+            if(!n || !h || d.length === 0) return alert("Faltan datos");
+            if(idx === -1) alumnos.push({nombre:n, hora:h, dias:d});
+            else alumnos[idx] = {nombre:n, hora:h, dias:d};
+            guardarEnNube();
+            cambiarVista();
+        }
+
+        function editar(i) {
+            const a = alumnos[i];
+            document.getElementById('editIndex').value = i;
+            document.getElementById('nombreAlumno').value = a.nombre;
+            document.getElementById('horaClase').value = a.hora;
+            document.querySelectorAll('#diasGrupo input').forEach(c => c.checked = a.dias.includes(c.value));
+            document.getElementById('btnBorrar').style.display = "block";
+            document.getElementById('btnGuardar').innerText = "ACTUALIZAR Y SUBIR";
+            cambiarVista();
+        }
+
+        function eliminarAlumno() {
+            const idx = parseInt(document.getElementById('editIndex').value);
+            if(confirm("¿Eliminar definitivamente?")) {
+                alumnos.splice(idx, 1);
+                guardarEnNube();
+                cambiarVista();
+            }
+        }
+
+        function cambiarVista() {
+            const reg = document.getElementById('vistaRegistro');
+            const evt = document.getElementById('vistaEventos');
+            const btn = document.getElementById('btnVista');
+            if (reg.classList.contains('activa')) {
+                reg.classList.remove('activa'); evt.classList.add('activa');
+                btn.innerText = "AÑADIR NUEVO ALUMNO";
+            } else {
+                evt.classList.remove('activa'); reg.classList.add('activa');
+                btn.innerText = "VOLVER A LA LISTA";
+                limpiar();
+            }
+        }
+
+        function limpiar() {
+            document.getElementById('editIndex').value = "-1";
+            document.getElementById('nombreAlumno').value = "";
+            document.getElementById('horaClase').value = "";
+            document.querySelectorAll('#diasGrupo input').forEach(c => c.checked = false);
+            document.getElementById('btnBorrar').style.display = "none";
+            document.getElementById('btnGuardar').innerText = "GUARDAR";
+        }
+
+        setInterval(actualizarReloj, 1000);
+        window.onload = cargarDesdeNube;
+    </script>
 </body>
 </html>
