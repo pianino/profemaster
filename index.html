@@ -10,7 +10,7 @@
         header { border-bottom: 2px solid #008000; padding-bottom: 10px; margin-bottom: 15px; text-align: center; }
         h1 { margin: 0; color: #008000; font-size: 2.2em; text-transform: uppercase; }
         #reloj { font-size: 1.2em; color: #fbbf24; margin-bottom: 5px; font-weight: bold; }
-        .estado { font-size: 0.9em; font-weight: bold; color: #00ff00; margin-bottom: 10px; }
+        #status { font-size: 0.9em; font-weight: bold; color: #00ff00; margin-bottom: 10px; }
         .btn-test { background: #443300; color: #fbbf24; border: 1px solid #fbbf24; padding: 5px 10px; font-size: 0.7em; cursor: pointer; border-radius: 5px; margin-top: 5px; }
         .vista { display: none; flex-grow: 1; width: 100%; }
         .activa { display: block; }
@@ -25,8 +25,6 @@
         .tarjeta { padding: 20px; border-left: 12px solid #008000; margin-bottom: 18px; background: #151515; border-radius: 12px; position: relative; }
         .alerta-45 { border-left-color: #fbbf24; background: #221a00; } 
         .tarjeta-activa { border-left-color: #00ff00; background: #001a00; }
-        .clase-espera { border-left-color: #ff0000; background: #2a0000; animation: parpadeo 1.5s infinite; }
-        @keyframes parpadeo { 50% { opacity: 0.6; } }
         .btn-edit-card { background: #1e3a8a; color: white; padding: 10px 15px; border-radius: 8px; border: none; float: right; font-weight: bold; }
         footer { margin-top: auto; padding: 25px 0; border-top: 1px solid #333; text-align: center; color: #666; font-size: 0.8em; }
     </style>
@@ -35,7 +33,7 @@
     <header>
         <h1>Profe Master</h1>
         <div id="reloj">Cargando...</div>
-        <div id="status" class="estado">● SISTEMA CLOUD ONLINE</div>
+        <div id="status">● CONECTANDO A CLOUD...</div>
         <button class="btn-test" onclick="playAlarmaMaster()">PROBAR SONIDO YM-2413</button>
     </header>
 
@@ -56,8 +54,8 @@
             <label class="dia"><input type="checkbox" value="Viernes"> Viernes</label>
             <label class="dia"><input type="checkbox" value="Sábado"> Sábado</label>
         </div>
-        <button id="btnGuardar" class="btn btn-verde" onclick="guardar()">GUARDAR Y SINCRONIZAR</button>
-        <button id="btnBorrar" class="btn btn-rojo" onclick="eliminarAlumno()">ELIMINAR ALUMNO DEFINITIVAMENTE</button>
+        <button id="btnGuardar" class="btn btn-verde" onclick="guardar()">GUARDAR Y SUBIR A CLOUD</button>
+        <button id="btnBorrar" class="btn btn-rojo" onclick="eliminarAlumno()">ELIMINAR ALUMNO</button>
     </div>
 
     <div id="vistaEventos" class="vista">
@@ -67,15 +65,15 @@
     <footer>MusicArte | MPJ Factory 2026</footer>
 
     <script>
-        // CONFIGURACIÓN CLOUD TINY-SYNC
-        const API_URL = "https://api.jsonbin.io/v3/b/65f0a69a2662c34d318721c1"; // Bin de prueba compartido
-        const API_KEY = "$2a$10$7Z/YF8C3Z2A1F/6.H.S6aeXJ.fWvH4hX9k/2s7S.vN8kRj3Y6Zz/i"; 
+        // CONFIGURACIÓN CLOUD
+        // Esta URL es para que tus datos se guarden en la nube y el iPhone los vea
+        const API_URL = "https://api.jsonbin.io/v3/b/65f0a69a2662c34d318721c1";
+        const API_KEY = "$2a$10$7Z/YF8C3Z2A1F/6.H.S6aeXJ.fWvH4hX9k/2s7S.vN8kRj3Y6Zz/i";
 
         const fmCfg = { harmonicity: 3.01, modulationIndex: 14, oscillator: { type: "sine" }, envelope: { attack: 0.001, decay: 2.5, sustain: 0.05, release: 4.0 } };
         const engineA = new Tone.PolySynth(Tone.FMSynth, fmCfg).toDestination();
         const engineB = new Tone.PolySynth(Tone.FMSynth, fmCfg).toDestination();
         engineB.set({ detune: -12 });
-        const beep = new Tone.Oscillator(1000, "sine").toDestination();
 
         let alumnos = [];
         let avisosDados = new Set();
@@ -83,21 +81,28 @@
         async function cargarDesdeNube() {
             try {
                 const res = await fetch(API_URL, { headers: { "X-Master-Key": API_KEY } });
+                if (!res.ok) throw new Error();
                 const data = await res.json();
                 alumnos = data.record.alumnos || [];
                 document.getElementById('status').innerText = "● CLOUD SINCRONIZADO";
                 render();
-            } catch (e) { document.getElementById('status').innerText = "○ MODO LOCAL"; }
+            } catch (e) {
+                document.getElementById('status').innerText = "○ MODO LOCAL (SIN NUBE)";
+            }
         }
 
         async function guardarEnNube() {
-            document.getElementById('status').innerText = "● GUARDANDO...";
-            await fetch(API_URL, {
-                method: 'PUT',
-                headers: { "Content-Type": "application/json", "X-Master-Key": API_KEY },
-                body: JSON.stringify({ alumnos: alumnos })
-            });
-            document.getElementById('status').innerText = "● CLOUD SINCRONIZADO";
+            document.getElementById('status').innerText = "● SUBIENDO DATOS...";
+            try {
+                await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: { "Content-Type": "application/json", "X-Master-Key": API_KEY },
+                    body: JSON.stringify({ alumnos: alumnos })
+                });
+                document.getElementById('status').innerText = "● CLOUD SINCRONIZADO";
+            } catch (e) {
+                document.getElementById('status').innerText = "❌ ERROR AL SUBIR";
+            }
         }
 
         async function playAlarmaMaster() {
@@ -115,6 +120,7 @@
             const ahora = new Date();
             const hStr = ahora.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
             document.getElementById('reloj').innerText = ahora.toLocaleDateString('es-ES', {weekday:'long', day:'numeric'}) + ", " + hStr;
+            
             const hoy = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"][ahora.getDay()];
             alumnos.forEach(a => {
                 if (!a.dias.includes(hoy)) return;
@@ -172,7 +178,7 @@
 
         function eliminarAlumno() {
             const idx = parseInt(document.getElementById('editIndex').value);
-            if(confirm("¿Eliminar definitivamente?")) {
+            if(confirm("¿Eliminar?")) {
                 alumnos.splice(idx, 1);
                 guardarEnNube();
                 cambiarVista();
