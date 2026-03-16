@@ -2,164 +2,141 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PROFE MASTER - TINY EDITION</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROFE MASTER FINAL</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        :root { --verde: #2d5a27; --oro: #d4af37; --fondo: #121212; --texto: #e0e0e0; }
-        body { background: var(--fondo); color: var(--texto); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 20px; box-sizing: border-box; }
+        :root { --verde: #2d5a27; --oro: #d4af37; --fondo: #121212; }
+        body { background: var(--fondo); color: white; font-family: sans-serif; padding: 20px; }
+        .card { background: #1e1e1e; padding: 15px; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px; }
+        #reloj { font-size: 3rem; text-align: center; color: var(--oro); font-family: monospace; margin: 10px 0; }
+        input { width: 100%; padding: 12px; margin: 5px 0; background: #2a2a2a; border: 1px solid var(--verde); border-radius: 8px; color: white; box-sizing: border-box; }
+        .btn { background: var(--verde); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         
-        /* PANTALLA DE INICIO */
-        #pantalla-inicio { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--fondo); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .btn-grande { background: var(--verde); color: white; border: none; padding: 25px 50px; font-size: 22px; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        /* TABLA DE ALUMNOS */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; color: var(--oro); border-bottom: 2px solid #333; padding: 10px; }
+        td { padding: 12px; border-bottom: 1px solid #222; }
+        .btn-del { background: #aa0000; color: white; border: none; padding: 5px 10px; border-radius: 4px; }
 
-        /* RELOJ */
-        .header { text-align: center; border-bottom: 2px solid var(--verde); padding-bottom: 10px; margin-bottom: 20px; }
-        #reloj { font-size: 3.5rem; font-family: 'Courier New', monospace; color: var(--oro); }
-
-        /* FORMULARIO */
-        .seccion { background: #1e1e1e; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #333; }
-        input, textarea { width: 100%; padding: 15px; margin: 10px 0; background: #2a2a2a; border: 1px solid #444; border-radius: 8px; color: white; font-size: 16px; box-sizing: border-box; }
-        .btn-accion { background: var(--verde); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; font-size: 18px; cursor: pointer; }
-        
-        /* LISTA ALUMNOS */
-        .alumno { background: #1a1a1a; border-left: 6px solid var(--oro); padding: 15px; margin-bottom: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
-        .info-alumno { display: flex; flex-direction: column; }
-        .nombre-alumno { font-weight: bold; font-size: 1.2rem; color: var(--oro); }
-        .hora-alumno { font-size: 0.9rem; color: #888; }
-        .btn-borrar { background: none; border: none; color: #ff5555; font-size: 24px; cursor: pointer; padding: 10px; }
-
-        /* SYNC */
-        .sync-area { font-size: 12px; color: #777; margin-top: 10px; }
+        #inicio { position: fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:10000; display:flex; align-items:center; justify-content:center; }
     </style>
 </head>
 <body>
 
-<div id="pantalla-inicio">
-    <h1 style="color: var(--oro);">PROFE MASTER</h1>
-    <p>Sistema de Gestión Musical</p>
-    <button class="btn-grande" onclick="iniciarSistema()">ACTIVAR SISTEMA</button>
+<div id="inicio">
+    <button class="btn" style="width:80%; height:80px; font-size:1.5rem;" onclick="activar()">ACTIVAR SISTEMA</button>
 </div>
 
-<div class="header">
+<div class="card">
     <div id="reloj">00:00:00</div>
+    <button class="btn" style="background:#444;" onclick="probarAlarma()">PROBAR SONIDO AHORA</button>
 </div>
 
-<div class="seccion">
-    <input type="text" id="inNombre" placeholder="Nombre del Alumno" aria-label="Nombre del Alumno">
-    <input type="time" id="inHora" aria-label="Hora de la clase">
-    <button class="btn-accion" onclick="agregarAlumno()">GUARDAR ALUMNO</button>
+<div class="card">
+    <h3>Nuevo Alumno</h3>
+    <input type="text" id="nom" placeholder="Nombre del Alumno">
+    <input type="time" id="hor">
+    <button class="btn" onclick="agregar()">AÑADIR A LA LISTA</button>
 </div>
 
-<div id="contenedor-lista"></div>
+<div class="card">
+    <h3>Lista de Clases</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Alumno</th>
+                <th>Hora</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody id="cuerpoTabla"></tbody>
+    </table>
+</div>
 
-<div class="seccion" style="margin-top: 40px; border-color: #444;">
-    <h3 style="margin-top: 0;">Sincronización Accesible</h3>
-    <textarea id="syncBox" rows="3" placeholder="Pega el código aquí para importar..."></textarea>
-    <button class="btn-accion" onclick="exportarDatos()" style="background: #444; margin-bottom: 10px;">1. COPIAR LISTA ACTUAL</button>
-    <button class="btn-accion" onclick="importarDatos()" style="background: #444;">2. PEGAR Y SINCRONIZAR</button>
+<div class="card" style="border-style: dashed;">
+    <h3>Sincronizar (PC ↔ iPhone)</h3>
+    <textarea id="syncBox" style="width:100%; background:#000; color:#0f0;" rows="3" placeholder="Pega el código aquí..."></textarea>
+    <button class="btn" style="background:#333;" onclick="exportar()">1. COPIAR DATOS</button>
+    <button class="btn" style="background:#333;" onclick="importar()">2. PEGAR Y ACTUALIZAR</button>
 </div>
 
 <script>
     let sintetizador;
-    let alumnos = JSON.parse(localStorage.getItem('profe_master_v3') || "[]");
+    let alumnos = JSON.parse(localStorage.getItem('pm_data_final') || "[]");
 
-    // --- INICIO ---
-    async function iniciarSistema() {
+    async function activar() {
         await Tone.start();
-        sintetizador = new Tone.PolySynth(Tone.Synth, {
-            oscillator: { type: "triangle" },
-            envelope: { attack: 0.1, decay: 0.2, sustain: 0.5, release: 1 }
-        }).toDestination();
-        
-        document.getElementById('pantalla-inicio').style.display = 'none';
-        render();
+        sintetizador = new Tone.PolySynth(Tone.Synth).toDestination();
+        document.getElementById('inicio').style.display = 'none';
+        actualizarVista();
     }
 
-    // --- LOGICA ALUMNOS ---
-    function agregarAlumno() {
-        const n = document.getElementById('inNombre').value;
-        const h = document.getElementById('inHora').value;
-        if (n && h) {
-            alumnos.push({ nombre: n, hora: h });
+    function agregar() {
+        const n = document.getElementById('nom').value;
+        const h = document.getElementById('hor').value;
+        if(n && h) {
+            alumnos.push({n, h});
             guardarYRefrescar();
-            document.getElementById('inNombre').value = "";
+            document.getElementById('nom').value = "";
         }
-    }
-
-    function borrarAlumno(index) {
-        alumnos.splice(index, 1);
-        guardarYRefrescar();
     }
 
     function guardarYRefrescar() {
-        localStorage.setItem('profe_master_v3', JSON.stringify(alumnos));
-        render();
+        localStorage.setItem('pm_data_final', JSON.stringify(alumnos));
+        actualizarVista();
     }
 
-    function render() {
-        const lista = document.getElementById('contenedor-lista');
-        lista.innerHTML = "";
-        
-        // Ordenar por hora
-        alumnos.sort((a, b) => a.hora.localeCompare(b.hora)).forEach((a, i) => {
-            lista.innerHTML += `
-                <div class="alumno">
-                    <div class="info-alumno">
-                        <span class="nombre-alumno">${a.nombre}</span>
-                        <span class="hora-alumno">Clase a las: ${a.hora}</span>
-                    </div>
-                    <button class="btn-borrar" onclick="borrarAlumno(${i})" aria-label="Eliminar a ${a.nombre}">✕</button>
-                </div>
-            `;
-        });
+    function actualizarVista() {
+        const tabla = document.getElementById('cuerpoTabla');
+        tabla.innerHTML = alumnos.sort((a,b)=>a.h.localeCompare(b.h)).map((a, i) => `
+            <tr>
+                <td><b>${a.n}</b></td>
+                <td>${a.h}</td>
+                <td><button class="btn-del" onclick="eliminar(${i})">Eliminar</button></td>
+            </tr>
+        `).join('');
     }
 
-    // --- ALARMA Y RELOJ ---
+    function eliminar(i) {
+        alumnos.splice(i, 1);
+        guardarYRefrescar();
+    }
+
+    function probarAlarma() {
+        if(!sintetizador) return;
+        const ahora = Tone.now();
+        sintetizador.triggerAttackRelease("C4", "8n", ahora);
+        sintetizador.triggerAttackRelease("E4", "8n", ahora + 0.1);
+        sintetizador.triggerAttackRelease("G4", "4n", ahora + 0.2);
+    }
+
     setInterval(() => {
-        const ahora = new Date();
-        const tiempoStr = ahora.toLocaleTimeString('es-ES', { hour12: false });
-        document.getElementById('reloj').innerText = tiempoStr;
-
-        if (ahora.getSeconds() === 0) {
-            const horaActual = tiempoStr.substring(0, 5);
-            const hayClase = alumnos.some(a => a.hora === horaActual);
-            if (hayClase) sonarAlarma();
+        const d = new Date();
+        const t = d.toLocaleTimeString('es-ES', {hour12:false});
+        document.getElementById('reloj').innerText = t;
+        if(d.getSeconds() === 0) {
+            const hActual = t.substring(0,5);
+            if(alumnos.some(a => a.h === hActual)) probarAlarma();
         }
     }, 1000);
 
-    function sonarAlarma() {
-        if (!sintetizador) return;
-        const ahora = Tone.now();
-        sintetizador.triggerAttackRelease("E4", "8n", ahora);
-        sintetizador.triggerAttackRelease("G4", "8n", ahora + 0.25);
-        sintetizador.triggerAttackRelease("C5", "2n", ahora + 0.5);
-    }
-
-    // --- SINCRONIZACIÓN (OPCIÓN 2) ---
-    function exportarDatos() {
-        const datosTexto = btoa(JSON.stringify(alumnos)); // Convertimos a Base64 para que sea un solo bloque
-        const box = document.getElementById('syncBox');
-        box.value = datosTexto;
-        box.select();
+    function exportar() {
+        const cod = btoa(JSON.stringify(alumnos));
+        document.getElementById('syncBox').value = cod;
+        document.getElementById('syncBox').select();
         document.execCommand('copy');
-        alert("¡Lista copiada al portapapeles! Envíala por WhatsApp o Mail al otro dispositivo.");
+        alert("¡Copiado! Pégalo en el otro dispositivo.");
     }
 
-    function importarDatos() {
+    function importar() {
         try {
-            const texto = document.getElementById('syncBox').value;
-            const nuevosAlumnos = JSON.parse(atob(texto));
-            if (Array.isArray(nuevosAlumnos)) {
-                alumnos = nuevosAlumnos;
-                guardarYRefrescar();
-                alert("¡Sincronización completada con éxito!");
-            }
-        } catch (e) {
-            alert("Error: El código de sincronización no es válido.");
-        }
+            const cod = document.getElementById('syncBox').value;
+            alumnos = JSON.parse(atob(cod));
+            guardarYRefrescar();
+            alert("¡Sincronizado!");
+        } catch(e) { alert("Código inválido"); }
     }
 </script>
-
 </body>
 </html>
