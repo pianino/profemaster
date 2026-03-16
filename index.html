@@ -1,212 +1,165 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profe Master - MPJ GOLD V3.1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PROFE MASTER - TINY EDITION</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        body { background-color: #000; color: #fff; font-family: sans-serif; padding: 20px; display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
-        header { border-bottom: 2px solid #008000; padding-bottom: 10px; margin-bottom: 15px; text-align: center; }
-        h1 { margin: 0; color: #008000; font-size: 2.2em; text-transform: uppercase; }
-        #reloj { font-size: 1.2em; color: #fbbf24; margin-bottom: 5px; font-weight: bold; }
-        .estado { font-size: 0.9em; font-weight: bold; color: #00ff00; margin-bottom: 10px; }
+        :root { --verde: #2d5a27; --oro: #d4af37; --fondo: #121212; --texto: #e0e0e0; }
+        body { background: var(--fondo); color: var(--texto); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 20px; box-sizing: border-box; }
         
-        /* Botón de prueba pequeño */
-        .btn-test { background: #443300; color: #fbbf24; border: 1px solid #fbbf24; padding: 5px 10px; font-size: 0.7em; cursor: pointer; border-radius: 5px; margin-top: 5px; }
+        /* PANTALLA DE INICIO */
+        #pantalla-inicio { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--fondo); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .btn-grande { background: var(--verde); color: white; border: none; padding: 25px 50px; font-size: 22px; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
 
-        .vista { display: none; flex-grow: 1; width: 100%; }
-        .activa { display: block; }
-        
-        label { display: block; margin: 15px 0 8px; font-weight: bold; font-size: 1.2em; color: #008000; }
-        input { width: 100%; padding: 18px; background: #1a1a1a; border: 2px solid #333; color: #fff; border-radius: 12px; font-size: 1.2em; box-sizing: border-box; }
-        
-        .dia { display: flex; align-items: center; margin: 15px 0; font-size: 1.3em; }
-        input[type="checkbox"] { width: 35px; height: 35px; margin-right: 15px; }
-        
-        .btn { width: 100%; padding: 20px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1.2em; margin-top: 15px; }
-        .btn-verde { background: #008000; color: white; }
-        .btn-nav { background: #333; color: white; margin-bottom: 25px; }
-        .btn-rojo { background: #800000; color: white; display: none; margin-top: 20px; }
+        /* RELOJ */
+        .header { text-align: center; border-bottom: 2px solid var(--verde); padding-bottom: 10px; margin-bottom: 20px; }
+        #reloj { font-size: 3.5rem; font-family: 'Courier New', monospace; color: var(--oro); }
 
-        .tarjeta { padding: 20px; border-left: 12px solid #008000; margin-bottom: 18px; background: #151515; border-radius: 12px; position: relative; }
-        .alerta-45 { border-left-color: #fbbf24; background: #221a00; } 
-        .tarjeta-activa { border-left-color: #00ff00; background: #001a00; }
-        .clase-espera { border-left-color: #ff0000; background: #2a0000; animation: parpadeo 1.5s infinite; }
-
-        @keyframes parpadeo { 50% { opacity: 0.6; } }
-        .btn-edit-card { background: #1e3a8a; color: white; padding: 10px 15px; border-radius: 8px; border: none; float: right; font-weight: bold; }
+        /* FORMULARIO */
+        .seccion { background: #1e1e1e; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #333; }
+        input, textarea { width: 100%; padding: 15px; margin: 10px 0; background: #2a2a2a; border: 1px solid #444; border-radius: 8px; color: white; font-size: 16px; box-sizing: border-box; }
+        .btn-accion { background: var(--verde); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; font-size: 18px; cursor: pointer; }
         
-        footer { margin-top: auto; padding: 25px 0; border-top: 1px solid #333; text-align: center; color: #666; font-size: 0.8em; }
+        /* LISTA ALUMNOS */
+        .alumno { background: #1a1a1a; border-left: 6px solid var(--oro); padding: 15px; margin-bottom: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .info-alumno { display: flex; flex-direction: column; }
+        .nombre-alumno { font-weight: bold; font-size: 1.2rem; color: var(--oro); }
+        .hora-alumno { font-size: 0.9rem; color: #888; }
+        .btn-borrar { background: none; border: none; color: #ff5555; font-size: 24px; cursor: pointer; padding: 10px; }
+
+        /* SYNC */
+        .sync-area { font-size: 12px; color: #777; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Profe Master</h1>
-        <div id="reloj">Cargando...</div>
-        <div id="status" class="estado">● SISTEMA ONLINE</div>
-        <button class="btn-test" onclick="playAlarmaMaster()">PROBAR SONIDO YM-2413</button>
-    </header>
+<div id="pantalla-inicio">
+    <h1 style="color: var(--oro);">PROFE MASTER</h1>
+    <p>Sistema de Gestión Musical</p>
+    <button class="btn-grande" onclick="iniciarSistema()">ACTIVAR SISTEMA</button>
+</div>
 
-    <div id="avisoManana" style="display: none; background: #1e3a8a; padding: 15px; border-radius: 10px; margin-bottom: 15px;"></div>
+<div class="header">
+    <div id="reloj">00:00:00</div>
+</div>
 
-    <button class="btn btn-nav" onclick="cambiarVista()" id="btnVista">VER LISTA DE ALUMNOS</button>
+<div class="seccion">
+    <input type="text" id="inNombre" placeholder="Nombre del Alumno" aria-label="Nombre del Alumno">
+    <input type="time" id="inHora" aria-label="Hora de la clase">
+    <button class="btn-accion" onclick="agregarAlumno()">GUARDAR ALUMNO</button>
+</div>
 
-    <div id="vistaRegistro" class="vista activa">
-        <input type="hidden" id="editIndex" value="-1">
-        <label>Nombre del Alumno:</label>
-        <input type="text" id="nombreAlumno">
-        <label>Hora de Inicio:</label>
-        <input type="time" id="horaClase">
-        <label>Días:</label>
-        <div id="diasGrupo">
-            <label class="dia"><input type="checkbox" value="Lunes"> Lunes</label>
-            <label class="dia"><input type="checkbox" value="Martes"> Martes</label>
-            <label class="dia"><input type="checkbox" value="Miércoles"> Miércoles</label>
-            <label class="dia"><input type="checkbox" value="Jueves"> Jueves</label>
-            <label class="dia"><input type="checkbox" value="Viernes"> Viernes</label>
-            <label class="dia"><input type="checkbox" value="Sábado"> Sábado</label>
-        </div>
-        <button id="btnGuardar" class="btn btn-verde" onclick="guardar()">GUARDAR</button>
-        <button id="btnBorrar" class="btn btn-rojo" onclick="eliminarAlumno()">ELIMINAR ALUMNO DEFINITIVAMENTE</button>
-    </div>
+<div id="contenedor-lista"></div>
 
-    <div id="vistaEventos" class="vista">
-        <div id="listaEventos"></div>
-    </div>
+<div class="seccion" style="margin-top: 40px; border-color: #444;">
+    <h3 style="margin-top: 0;">Sincronización Accesible</h3>
+    <textarea id="syncBox" rows="3" placeholder="Pega el código aquí para importar..."></textarea>
+    <button class="btn-accion" onclick="exportarDatos()" style="background: #444; margin-bottom: 10px;">1. COPIAR LISTA ACTUAL</button>
+    <button class="btn-accion" onclick="importarDatos()" style="background: #444;">2. PEGAR Y SINCRONIZAR</button>
+</div>
 
-    <footer>MusicArte | MPJ Factory 2026</footer>
+<script>
+    let sintetizador;
+    let alumnos = JSON.parse(localStorage.getItem('profe_master_v3') || "[]");
 
-    <script>
-        // MOTOR YM-2413
-        const fmCfg = { harmonicity: 3.01, modulationIndex: 14, oscillator: { type: "sine" }, envelope: { attack: 0.001, decay: 2.5, sustain: 0.05, release: 4.0 }, modulationEnvelope: { attack: 0.01, decay: 1.2, sustain: 0, release: 1.2 } };
-        const engineA = new Tone.PolySynth(Tone.FMSynth, fmCfg).toDestination();
-        const engineB = new Tone.PolySynth(Tone.FMSynth, fmCfg).toDestination();
-        engineB.set({ detune: -12 });
-        const beep = new Tone.Oscillator(1000, "sine").toDestination();
+    // --- INICIO ---
+    async function iniciarSistema() {
+        await Tone.start();
+        sintetizador = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "triangle" },
+            envelope: { attack: 0.1, decay: 0.2, sustain: 0.5, release: 1 }
+        }).toDestination();
+        
+        document.getElementById('pantalla-inicio').style.display = 'none';
+        render();
+    }
 
-        async function playAlarmaMaster() {
-            await Tone.start();
-            const now = Tone.now();
-            ["E4", "C#4", "E4", "A4"].forEach((n, i) => {
-                [0, 2.5].forEach(off => {
-                    engineA.triggerAttackRelease(n, "4n", now + off + (i * 0.5));
-                    engineB.triggerAttackRelease(n, "4n", now + off + (i * 0.5));
-                });
-            });
+    // --- LOGICA ALUMNOS ---
+    function agregarAlumno() {
+        const n = document.getElementById('inNombre').value;
+        const h = document.getElementById('inHora').value;
+        if (n && h) {
+            alumnos.push({ nombre: n, hora: h });
+            guardarYRefrescar();
+            document.getElementById('inNombre').value = "";
         }
+    }
 
-        let alumnos = JSON.parse(localStorage.getItem('profe_master_backup') || "[]");
-        let avisosDados = new Set();
+    function borrarAlumno(index) {
+        alumnos.splice(index, 1);
+        guardarYRefrescar();
+    }
 
-        function actualizarReloj() {
-            const ahora = new Date();
-            const hStr = ahora.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
-            document.getElementById('reloj').innerText = ahora.toLocaleDateString('es-ES', {weekday:'long', day:'numeric'}) + ", " + hStr;
-            
-            const hoy = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"][ahora.getDay()];
-            alumnos.forEach(a => {
-                if (!a.dias.includes(hoy)) return;
-                if (a.hora === hStr && !avisosDados.has(a.nombre + hStr)) {
-                    playAlarmaMaster();
-                    avisosDados.add(a.nombre + hStr);
-                }
-                const [h, m] = a.hora.split(':').map(Number);
-                const dc = new Date(); dc.setHours(h, m, 0);
-                const diff = (dc - ahora) / 60000;
-                if (Math.round(diff) === 45 && !avisosDados.has(a.nombre + "_45")) {
-                    beep.start().stop("+0.2");
-                    avisosDados.add(a.nombre + "_45");
-                }
-            });
-            render();
+    function guardarYRefrescar() {
+        localStorage.setItem('profe_master_v3', JSON.stringify(alumnos));
+        render();
+    }
+
+    function render() {
+        const lista = document.getElementById('contenedor-lista');
+        lista.innerHTML = "";
+        
+        // Ordenar por hora
+        alumnos.sort((a, b) => a.hora.localeCompare(b.hora)).forEach((a, i) => {
+            lista.innerHTML += `
+                <div class="alumno">
+                    <div class="info-alumno">
+                        <span class="nombre-alumno">${a.nombre}</span>
+                        <span class="hora-alumno">Clase a las: ${a.hora}</span>
+                    </div>
+                    <button class="btn-borrar" onclick="borrarAlumno(${i})" aria-label="Eliminar a ${a.nombre}">✕</button>
+                </div>
+            `;
+        });
+    }
+
+    // --- ALARMA Y RELOJ ---
+    setInterval(() => {
+        const ahora = new Date();
+        const tiempoStr = ahora.toLocaleTimeString('es-ES', { hour12: false });
+        document.getElementById('reloj').innerText = tiempoStr;
+
+        if (ahora.getSeconds() === 0) {
+            const horaActual = tiempoStr.substring(0, 5);
+            const hayClase = alumnos.some(a => a.hora === horaActual);
+            if (hayClase) sonarAlarma();
         }
+    }, 1000);
 
-        function render() {
-            const ahora = new Date();
-            const hoy = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"][ahora.getDay()];
-            const cont = document.getElementById('listaEventos');
+    function sonarAlarma() {
+        if (!sintetizador) return;
+        const ahora = Tone.now();
+        sintetizador.triggerAttackRelease("E4", "8n", ahora);
+        sintetizador.triggerAttackRelease("G4", "8n", ahora + 0.25);
+        sintetizador.triggerAttackRelease("C5", "2n", ahora + 0.5);
+    }
 
-            cont.innerHTML = alumnos.map((a, i) => {
-                if (!a.dias.includes(hoy)) return "";
-                const [h, m] = a.hora.split(':').map(Number);
-                const dc = new Date(); dc.setHours(h, m, 0);
-                const diff = (dc - ahora) / 60000;
-                if (diff < -30) return "";
+    // --- SINCRONIZACIÓN (OPCIÓN 2) ---
+    function exportarDatos() {
+        const datosTexto = btoa(JSON.stringify(alumnos)); // Convertimos a Base64 para que sea un solo bloque
+        const box = document.getElementById('syncBox');
+        box.value = datosTexto;
+        box.select();
+        document.execCommand('copy');
+        alert("¡Lista copiada al portapapeles! Envíala por WhatsApp o Mail al otro dispositivo.");
+    }
 
-                let estilo = "";
-                let msg = "En espera";
-                if (diff <= 45 && diff > 0) { estilo = "alerta-45"; msg = "⚠️ TARJETAS (45m)"; }
-                if (diff <= 0 && diff >= -15) { estilo = "tarjeta-activa"; msg = "● EN CLASE"; }
-                if (diff < -15) { estilo = "clase-espera"; msg = "❌ ¿CANCELADA? (15m)"; }
-
-                return `<div class="tarjeta ${estilo}">
-                    <button class="btn-edit-card" onclick="editar(${i})">EDITAR</button>
-                    <strong>${a.nombre}</strong><br>${a.hora} | ${msg}
-                </div>`;
-            }).join('') || "No hay más clases hoy.";
-        }
-
-        function guardar() {
-            const n = document.getElementById('nombreAlumno').value;
-            const h = document.getElementById('horaClase').value;
-            const d = Array.from(document.querySelectorAll('#diasGrupo input:checked')).map(c => c.value);
-            const idx = parseInt(document.getElementById('editIndex').value);
-            if(!n || !h || d.length === 0) return alert("Faltan datos");
-            
-            if(idx === -1) alumnos.push({nombre:n, hora:h, dias:d});
-            else alumnos[idx] = {nombre:n, hora:h, dias:d};
-            
-            localStorage.setItem('profe_master_backup', JSON.stringify(alumnos));
-            cambiarVista();
-        }
-
-        function editar(i) {
-            const a = alumnos[i];
-            document.getElementById('editIndex').value = i;
-            document.getElementById('nombreAlumno').value = a.nombre;
-            document.getElementById('horaClase').value = a.hora;
-            document.querySelectorAll('#diasGrupo input').forEach(c => c.checked = a.dias.includes(c.value));
-            document.getElementById('btnBorrar').style.display = "block";
-            document.getElementById('btnGuardar').innerText = "ACTUALIZAR ALUMNO";
-            cambiarVista();
-        }
-
-        function eliminarAlumno() {
-            const idx = parseInt(document.getElementById('editIndex').value);
-            if(confirm("¿Eliminar a este alumno de la base de datos?")) {
-                alumnos.splice(idx, 1);
-                localStorage.setItem('profe_master_backup', JSON.stringify(alumnos));
-                cambiarVista();
+    function importarDatos() {
+        try {
+            const texto = document.getElementById('syncBox').value;
+            const nuevosAlumnos = JSON.parse(atob(texto));
+            if (Array.isArray(nuevosAlumnos)) {
+                alumnos = nuevosAlumnos;
+                guardarYRefrescar();
+                alert("¡Sincronización completada con éxito!");
             }
+        } catch (e) {
+            alert("Error: El código de sincronización no es válido.");
         }
+    }
+</script>
 
-        function cambiarVista() {
-            const reg = document.getElementById('vistaRegistro');
-            const evt = document.getElementById('vistaEventos');
-            const btn = document.getElementById('btnVista');
-            if (reg.classList.contains('activa')) {
-                reg.classList.remove('activa'); evt.classList.add('activa');
-                btn.innerText = "AÑADIR NUEVO ALUMNO";
-            } else {
-                evt.classList.remove('activa'); reg.classList.add('activa');
-                btn.innerText = "VOLVER A LA LISTA";
-                limpiar();
-            }
-        }
-
-        function limpiar() {
-            document.getElementById('editIndex').value = "-1";
-            document.getElementById('nombreAlumno').value = "";
-            document.getElementById('horaClase').value = "";
-            document.querySelectorAll('#diasGrupo input').forEach(c => c.checked = false);
-            document.getElementById('btnBorrar').style.display = "none";
-            document.getElementById('btnGuardar').innerText = "GUARDAR";
-        }
-
-        setInterval(actualizarReloj, 1000);
-        window.onload = () => { render(); };
-    </script>
 </body>
 </html>
