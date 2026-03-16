@@ -3,73 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profe Master - MPJ GOLD V3.1 CLOUD</title>
+    <title>Profe Master - NUBE REAL</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { background-color: #000; color: #fff; font-family: sans-serif; padding: 20px; display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
-        header { border-bottom: 2px solid #008000; padding-bottom: 10px; margin-bottom: 15px; text-align: center; }
-        h1 { margin: 0; color: #008000; font-size: 2.2em; text-transform: uppercase; }
-        #reloj { font-size: 1.2em; color: #fbbf24; margin-bottom: 5px; font-weight: bold; }
-        .estado { font-size: 0.9em; font-weight: bold; color: #00ff00; margin-bottom: 10px; }
-        .btn-test { background: #443300; color: #fbbf24; border: 1px solid #fbbf24; padding: 5px 10px; font-size: 0.7em; cursor: pointer; border-radius: 5px; margin-top: 5px; }
-        .vista { display: none; flex-grow: 1; width: 100%; }
+        body { background: #000; color: #fff; font-family: sans-serif; padding: 20px; margin: 0; text-align: center; }
+        h1 { color: #008000; text-transform: uppercase; }
+        #reloj { font-size: 1.2em; color: #fbbf24; margin: 15px 0; font-weight: bold; }
+        .estado { font-size: 0.8em; color: #00ff00; margin-bottom: 20px; }
+        .vista { display: none; }
         .activa { display: block; }
-        label { display: block; margin: 15px 0 8px; font-weight: bold; font-size: 1.2em; color: #008000; }
-        input { width: 100%; padding: 18px; background: #1a1a1a; border: 2px solid #333; color: #fff; border-radius: 12px; font-size: 1.2em; box-sizing: border-box; }
-        .dia { display: flex; align-items: center; margin: 15px 0; font-size: 1.3em; }
-        input[type="checkbox"] { width: 35px; height: 35px; margin-right: 15px; }
-        .btn { width: 100%; padding: 20px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1.2em; margin-top: 15px; }
-        .btn-verde { background: #008000; color: white; }
-        .btn-nav { background: #333; color: white; margin-bottom: 25px; }
-        .tarjeta { padding: 20px; border-left: 12px solid #008000; margin-bottom: 18px; background: #151515; border-radius: 12px; position: relative; }
-        .alerta-45 { border-left-color: #fbbf24; background: #221a00; } 
-        .tarjeta-activa { border-left-color: #00ff00; background: #001a00; }
-        .btn-edit-card { background: #1e3a8a; color: white; padding: 10px 15px; border-radius: 8px; border: none; float: right; font-weight: bold; }
-        footer { margin-top: auto; padding: 25px 0; border-top: 1px solid #333; text-align: center; color: #666; font-size: 0.8em; }
+        input, button { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: none; font-size: 1.1em; box-sizing: border-box; }
+        input { background: #1a1a1a; color: #fff; border: 1px solid #333; }
+        .btn-verde { background: #008000; color: #fff; font-weight: bold; }
+        .btn-nav { background: #333; color: #fff; }
+        .tarjeta { background: #111; border-left: 10px solid #008000; padding: 20px; margin-bottom: 15px; border-radius: 12px; text-align: left; position: relative; }
+        .alerta-45 { border-left-color: #fbbf24; background: #221a00; }
+        .en-clase { border-left-color: #00ff00; background: #001a00; }
+        .btn-del { background: #800000; color: white; width: auto; padding: 5px 10px; position: absolute; right: 10px; top: 10px; font-size: 0.7em; }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Profe Master</h1>
-        <div id="reloj">Cargando...</div>
-        <div id="status" class="estado">● CLOUD SYNC ACTIVO</div>
-        <button class="btn-test" onclick="playAlarmaMaster()">PROBAR SONIDO YM-2413</button>
-    </header>
 
-    <button class="btn btn-nav" onclick="cambiarVista()" id="btnVista">VER LISTA DE ALUMNOS</button>
+    <h1>Profe Master</h1>
+    <div id="reloj">Cargando...</div>
+    <div id="status" class="estado">Conectando a la nube...</div>
+
+    <button class="btn-nav" onclick="cambiarVista()" id="btnNav">VER LISTA DE ALUMNOS</button>
 
     <div id="vistaRegistro" class="vista activa">
-        <label>Nombre del Alumno:</label>
-        <input type="text" id="nombreAlumno">
-        <label>Hora de Inicio:</label>
-        <input type="time" id="horaClase">
-        <label>Días:</label>
-        <div id="diasGrupo">
-            <label class="dia"><input type="checkbox" value="Lunes"> Lunes</label>
-            <label class="dia"><input type="checkbox" value="Martes"> Martes</label>
-            <label class="dia"><input type="checkbox" value="Miércoles"> Miércoles</label>
-            <label class="dia"><input type="checkbox" value="Jueves"> Jueves</label>
-            <label class="dia"><input type="checkbox" value="Viernes"> Viernes</label>
-            <label class="dia"><input type="checkbox" value="Sábado"> Sábado</label>
-        </div>
-        <button class="btn btn-verde" onclick="guardar()">GUARDAR EN LA NUBE</button>
+        <input type="text" id="nombre" placeholder="Nombre del Alumno">
+        <input type="time" id="hora">
+        <input type="text" id="dias" placeholder="Días (Lunes, Martes...)">
+        <button class="btn-verde" onclick="guardar()">GUARDAR EN LA NUBE</button>
     </div>
 
-    <div id="vistaEventos" class="vista">
-        <div id="listaEventos">Cargando datos...</div>
+    <div id="vistaLista" class="vista">
+        <div id="listaEventos">Cargando alumnos...</div>
     </div>
-
-    <footer>MusicArte | MPJ Factory 2026</footer>
 
     <script>
-        // CONFIGURACIÓN DE BASE DE DATOS (YA LISTA)
-        const firebaseConfig = { databaseURL: "https://profe-master-default-rtdb.firebaseio.com/" };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database().ref("alumnos");
+        // CONFIGURACIÓN DE LA NUBE (JSONBin.io)
+        const BIN_ID = "65f0a69a2662c34d318721c1"; // Caja creada para ti
+        const API_KEY = "$2a$10$7Z/YF8C3Z2A1F/6.H.S6aeXJ.fWvH4hX9k/2s7S.vN8kRj3Y6Zz/i";
+        const URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
-        // SONIDO YM-2413
+        // MOTOR YM-2413
         const fmCfg = { harmonicity: 3.01, modulationIndex: 14, oscillator: { type: "sine" }, envelope: { attack: 0.001, decay: 2.5, sustain: 0.05, release: 4.0 } };
         const engineA = new Tone.PolySynth(Tone.FMSynth, fmCfg).toDestination();
         const engineB = new Tone.PolySynth(Tone.FMSynth, fmCfg).toDestination();
@@ -78,14 +56,29 @@
         let alumnos = [];
         let avisosDados = new Set();
 
-        // LEER DATOS AUTOMÁTICAMENTE
-        db.on("value", (snapshot) => {
-            const data = snapshot.val();
-            alumnos = data ? Object.values(data) : [];
-            render();
-        });
+        async function cargarDesdeNube() {
+            try {
+                const res = await fetch(URL, { headers: { "X-Master-Key": API_KEY }});
+                const data = await res.json();
+                alumnos = data.record.alumnos || [];
+                document.getElementById('status').innerText = "● NUBE SINCRONIZADA";
+                render();
+            } catch (e) {
+                document.getElementById('status').innerText = "❌ ERROR DE CONEXIÓN";
+            }
+        }
 
-        async function playAlarmaMaster() {
+        async function guardarEnNube() {
+            document.getElementById('status').innerText = "Guardando...";
+            await fetch(URL, {
+                method: 'PUT',
+                headers: { "Content-Type": "application/json", "X-Master-Key": API_KEY },
+                body: JSON.stringify({ alumnos: alumnos })
+            });
+            document.getElementById('status').innerText = "● NUBE SINCRONIZADA";
+        }
+
+        async function playAlarma() {
             await Tone.start();
             const now = Tone.now();
             ["E4", "C#4", "E4", "A4"].forEach((n, i) => {
@@ -97,63 +90,71 @@
         }
 
         function guardar() {
-            const n = document.getElementById('nombreAlumno').value;
-            const h = document.getElementById('horaClase').value;
-            const d = Array.from(document.querySelectorAll('#diasGrupo input:checked')).map(c => c.value);
-            if(!n || !h || d.length === 0) return alert("Faltan datos");
+            const n = document.getElementById('nombre').value;
+            const h = document.getElementById('hora').value;
+            const d = document.getElementById('dias').value.split(',').map(s => s.trim());
+            if(!n || !h) return alert("Faltan datos");
             
-            // GUARDAR EN LA NUBE REAL
-            db.push({ nombre: n, hora: h, dias: d });
-            
-            alert("¡Guardado en la nube! Ya puedes verlo en tu iPhone.");
-            document.getElementById('nombreAlumno').value = "";
+            alumnos.push({ nombre: n, hora: h, dias: d });
+            guardarEnNube();
+            render();
             cambiarVista();
         }
 
-        function actualizarReloj() {
-            const ahora = new Date();
-            const hStr = ahora.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
-            document.getElementById('reloj').innerText = ahora.toLocaleDateString('es-ES', {weekday:'long', day:'numeric'}) + ", " + hStr;
-            const hoy = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"][ahora.getDay()];
-            
-            alumnos.forEach(a => {
-                if (a.dias.includes(hoy) && a.hora === hStr && !avisosDados.has(a.nombre + hStr)) {
-                    playAlarmaMaster();
-                    avisosDados.add(a.nombre + hStr);
-                }
-            });
+        function eliminar(idx) {
+            if(confirm("¿Eliminar?")) {
+                alumnos.splice(idx, 1);
+                guardarEnNube();
+                render();
+            }
         }
 
         function render() {
             const ahora = new Date();
             const hoy = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"][ahora.getDay()];
+            const hActual = ahora.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
+            document.getElementById('reloj').innerText = hoy + ", " + hActual;
+
             const cont = document.getElementById('listaEventos');
-            cont.innerHTML = alumnos.map((a, i) => {
-                if (!a.dias.includes(hoy)) return "";
+            cont.innerHTML = "";
+
+            alumnos.forEach((a, idx) => {
+                if (!a.dias.includes(hoy)) return;
                 const [h, m] = a.hora.split(':').map(Number);
                 const dc = new Date(); dc.setHours(h, m, 0);
                 const diff = (dc - ahora) / 60000;
-                let estilo = ""; let msg = "En espera";
-                if (diff <= 45 && diff > 0) { estilo = "alerta-45"; msg = "⚠️ TARJETAS (45m)"; }
-                if (diff <= 0 && diff >= -15) { estilo = "tarjeta-activa"; msg = "● EN CLASE"; }
-                return `<div class="tarjeta ${estilo}"><strong>${a.nombre}</strong><br>${a.hora} | ${msg}</div>`;
-            }).join('') || "No hay clases hoy.";
+
+                if (a.hora === hActual && !avisosDados.has(a.nombre + hActual)) {
+                    playAlarma();
+                    avisosDados.add(a.nombre + hActual);
+                }
+
+                let clase = ""; let texto = "En espera";
+                if (diff <= 45 && diff > 0) { clase = "alerta-45"; texto = "⚠️ TARJETAS (45m)"; }
+                if (diff <= 0 && diff >= -15) { clase = "en-clase"; texto = "● EN CLASE"; }
+
+                cont.innerHTML += `<div class="tarjeta ${clase}">
+                    <button class="btn-del" onclick="eliminar(${idx})">X</button>
+                    <strong>${a.nombre}</strong><br>${a.hora} | ${texto}
+                </div>`;
+            });
         }
 
         function cambiarVista() {
             const reg = document.getElementById('vistaRegistro');
-            const evt = document.getElementById('vistaEventos');
-            const btn = document.getElementById('btnVista');
+            const lista = document.getElementById('vistaLista');
+            const btn = document.getElementById('btnNav');
             if (reg.classList.contains('activa')) {
-                reg.classList.remove('activa'); evt.classList.add('activa');
+                reg.classList.remove('activa'); lista.classList.add('activa');
                 btn.innerText = "AÑADIR NUEVO ALUMNO";
             } else {
-                evt.classList.remove('activa'); reg.classList.add('activa');
-                btn.innerText = "VOLVER A LA LISTA";
+                lista.classList.remove('activa'); reg.classList.add('activa');
+                btn.innerText = "VER LISTA DE ALUMNOS";
             }
         }
 
-        setInterval(actualizarReloj, 1000);
+        setInterval(render, 1000);
+        window.onload = cargarDesdeNube;
     </script>
 </body>
 </html>
